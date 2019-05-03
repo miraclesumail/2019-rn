@@ -1,0 +1,171 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <base href="/mortgage/calculator">
+    <title>Document</title>
+    <style>
+      /* path{
+           stroke: linear-gradient('yellow', 'blue');
+       } */
+
+      /* div{
+           width: 100px;
+           height: 100px;
+           background: yellow;
+           transform: rotate(calc(.25turn - 30deg))
+       } */
+      * {
+        /* padding: 0;
+        margin: 0; */
+      }
+      div.circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: green;
+        position: absolute;
+      }
+
+      .panel {
+        width: 300px;
+        height: 40px;
+        background: pink;
+        position: absolute;
+        left: 100px;
+        top: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="1000" height="1000">
+      <defs>
+        <linearGradient id="linear" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="yellow" />
+          <stop offset="100%" stop-color="green" />
+        </linearGradient>
+      </defs>
+      <!-- <rect x="130" y="130" width="120" height="90" transform="rotate(45, 190, 175)"></rect> -->
+      <path
+        d="M130.4-0.8c25.4 0 46 20.6 46 46.1 0 13.1-5.5 24.9-14.2 33.3L88 153.6 12.5 77.3c-7.9-8.3-12.8-19.6-12.8-31.9 0-25.5 20.6-46.1 46-46.2 19.1 0 35.5 11.7 42.4 28.4C94.9 11 111.3-0.8 130.4-0.8"
+        fill="none"
+        stroke-width="5"
+        stroke="url(#linear)"
+        class="mypath"
+      />
+    </svg>
+    <div class="circle">jjjjj</div>
+
+    <div class="panel"></div>
+  </body>
+  <script
+    src="https://code.jquery.com/jquery-3.4.0.js"
+    integrity="sha256-DYZMCC8HTC+QDr5QNaIcfR7VSPtcISykd+6eSmBW5qo="
+    crossorigin="anonymous"
+  ></script>
+  <script src="../page/assets/lodash.js"></script>
+  <script>
+    let path = document.querySelector(".mypath");
+    console.log(path.getTotalLength());
+
+    let count = 960,
+      totalLength = path.getTotalLength(),
+      hasLoad = 0,
+      timer;
+    for (let i = 1; i <= count; i++) {
+      let axis = path.getPointAtLength((totalLength / count) * i);
+      console.log(axis);
+    }
+
+    placeCircle(0);
+
+    function placeCircle(distance) {
+      $(".circle").css({
+        left: path.getPointAtLength(distance).x - 15,
+        top: path.getPointAtLength(distance).y - 15
+      });
+    }
+
+    timer = setInterval(() => {
+      // placeCircle(totalLength/count*hasLoad);
+      if (hasLoad == count) {
+        clearInterval(timer);
+        return;
+      }
+      hasLoad++;
+    }, 1000 / 100);
+
+    $(".panel").mousemove(
+      _.throttle(function(event) {
+        console.log(event.pageX, event.clientX);
+        placeCircle(((event.pageX - 100) / 300) * totalLength);
+      }, 100)
+    );
+  </script>
+
+  <script>
+    $("#header").load("./header.html"),
+      $("#menu").load("./menu.html", function() {
+        page.base(""),
+          page("/*", function(a, e) {
+            e();
+          }),
+          page("/explain", function() {
+            $("#content").load("./page/explain.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="explain"]').addClass("active");
+          }),
+          page("/team", function() {
+            $("#content").load("./page/team.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="team"]').addClass("active");
+          }),
+          page("/up", function() {
+            $("#content").load("./page/up.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="up"]').addClass("active");
+          }),
+          page("/us", function() {
+            $("#content").load("./page/us.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="us"]').addClass("active");
+          }),
+          page("/Recruitment", function() {
+            $("#content").load("./page/Recruitment.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="Recruitment"]').addClass("active");
+          }),
+          page("/emerald", function() {
+            $("#content").load("./page/business/emerald.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="emerald"]').addClass("active"),
+              $('#menu a[name="business"]').addClass("active");
+          }),
+          page("/gold", function() {
+            $("#content").load("./page/business/gold.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="gold"]').addClass("active"),
+              $('#menu a[name="business"]').addClass("active");
+          }),
+          page("/diamond", function() {
+            $("#content").load("./page/business/diamond.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="business"]').addClass("active"),
+              $('#menu a[name="diamond"]').addClass("active");
+          }),
+          page("/yunnan", function() {
+            $("#content").load("./page/business/yunnan.html"),
+              $("#menu a").removeClass("active"),
+              $('#menu a[name="yunnan"]').addClass("active"),
+              $('#menu a[name="business"]').addClass("active");
+          }),
+          page("*", function() {
+            page("/explain");
+          }),
+          page({ hashbang: !0 });
+      });
+
+    
+  </script>
+</html>

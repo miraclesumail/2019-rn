@@ -1,0 +1,35 @@
+<html>
+<body>
+
+<button>Send post message from web</button>
+<div class="qq">Post message log</div>
+<div class="ww">5</div>
+<textarea style="height: 50%; width: 100%;" readonly></textarea>
+
+<script>
+var log = document.querySelector("textarea");
+console.log("Send post message");
+document.querySelector('.qq').style.backgroundColor = 'red';   
+
+document.querySelector("button").onclick = function() {
+    document.querySelector('.qq').style.backgroundColor = 'yellow';   
+    //logMessage("Sending post message from web..");
+    window.postMessage("Post message from web", "*");
+}
+
+document.addEventListener("message", function(event) {
+    console.log("Received post message", event);
+    document.querySelector('.qq').innerHTML = (new Date()) + " " + 'ddddddddddddd';
+    // let inner = parseInt(document.querySelector('.ww').innerHTML);
+    // document.querySelector('.ww').innerHTML = (inner + 1) + '';
+   // logMessage(event.data);
+}, false);
+
+// function logMessage(message) {
+//     let div = document.createElement('div');
+//     div.textContent = (new Date()) + " " + message + "\n";
+//     log.appendChild(div);
+// }
+</script>
+</body>
+</html>

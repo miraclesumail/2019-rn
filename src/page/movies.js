@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Text, View, FlatList, StyleSheet, Dimensions, RefreshControl, ActivityIndicator } from 'react-native'
+import { Text, View, FlatList, StyleSheet, Dimensions, RefreshControl, ActivityIndicator, PanResponder } from 'react-native'
 
 const { width } = Dimensions.get('window');
 
@@ -33,7 +33,7 @@ export class Movies extends Component {
             backgroundColor: navigationOptions.headerTintColor,
           },
           headerTintColor: navigationOptions.headerStyle.backgroundColor,
-        };
+        }
       }
 
   state = {
@@ -53,6 +53,8 @@ export class Movies extends Component {
       loading: false,
       onEndReachedCalledDuringMomentum: true
   }
+
+  panResponderHandlers = 
 
   _keyExtractor = (item, index) => index + 'qq'
 
@@ -89,6 +91,8 @@ export class Movies extends Component {
     );
   };
 
+
+
   render() {
     const {refreshing, movies} = this.state;
     return (
@@ -121,3 +125,4 @@ const styles = StyleSheet.create({
           width
       }
 })
+

@@ -8,12 +8,12 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, TouchableOpacity, FlatList, PanResponder, 
-  SectionList, Dimensions, Animated, Button, UIManager} from 'react-native';
+import {Platform, StyleSheet, Text, View, TouchableOpacity, FlatList, PanResponder, Easing,
+  SectionList, Dimensions, Animated, Button, UIManager, YellowBox} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Share from 'react-native-share';
 
-import {createStackNavigator, createAppContainer} from 'react-navigation'
+import {createStackNavigator, createAppContainer, createNavigator} from 'react-navigation'
 import NavigationService from './src/navigationService'
 import Detail from './src/page/detail'
 import HighOrder from './src/page/another'
@@ -27,9 +27,14 @@ import TapForward from './src/page/tapForward'
 import Chart from './src/page/chart'
 import Reanimated from './src/page/reanimated'
 import Movies from './src/page/movies'
+import PullRefresh from './src/page/pullRefresh'
 import Clock from './src/page/clock'
 import Twitter from './src/page/twitter'
-
+import Tinder from './src/page/tinder'
+import GoScreen from './src/component/goScreen'
+import Act from './src/page/mayday/interact'
+import Slider from './src/page/mayday/slider'
+import Lottery from './src/page/mayday/lottery'
 import Axios from './src/tool/axios'
 
 const instructions = Platform.select({
@@ -38,6 +43,62 @@ const instructions = Platform.select({
     'Double tap R on your keyboard to reload,\n' +
     'Shake or press menu button for dev menu',
 });
+
+YellowBox.ignoreWarnings(['Warning: ']);
+
+const transitionConfig = () => {
+  return {
+    transitionSpec: {
+      duration: 750,
+      easing: Easing.out(Easing.poly(4)),
+      timing: Animated.timing,
+      useNativeDriver: true,
+    },
+    screenInterpolator: sceneProps => {
+        const { position, layout, scene, index, scenes } = sceneProps
+        const toIndex = index
+        const thisSceneIndex = scene.index
+        const height = layout.initHeight
+        const width = layout.initWidth
+  
+        const translateX = position.interpolate({
+          inputRange: [thisSceneIndex - 1, thisSceneIndex, thisSceneIndex + 1],
+          outputRange: [width, 0, 0]
+        })
+
+
+        const translateFromBottom = position.interpolate({
+          inputRange: [thisSceneIndex - 1, thisSceneIndex, thisSceneIndex + 1],
+          outputRange: [height, 0, 0]
+        })
+        // Since we want the card to take the same amount of time
+        // to animate downwards no matter if it's 3rd on the stack
+        // or 53rd, we interpolate over the entire range from 0 - thisSceneIndex
+        const translateY = position.interpolate({
+          inputRange: [0, thisSceneIndex],
+          outputRange: [height, 0]
+        })
+  
+        const slideFromRight = { transform: [{ translateX }] }
+        const slideFromBottom = { transform: [{ translateY }] }
+  
+        const lastSceneIndex = scenes[scenes.length - 1].index
+  
+        // Test whether we're skipping back more than one screen
+        if (lastSceneIndex - toIndex > 1) {
+          // Do not transoform the screen being navigated to
+          if (scene.index === toIndex) return
+          // Hide all screens in between
+          // Slide top screen down
+          return slideFromBottom
+        }
+  
+        if(toIndex % 3 == 0)
+           return slideFromRight
+        else
+           return { transform: [{ translateY: translateFromBottom }] } 
+      }
+  }}
 
 const widths = Dimensions.get('window').width;
 
@@ -63,15 +124,8 @@ class App extends Component {
       })
       .catch(error => console.error(error))
        //this.handlePress()
-      fetch('http://192.168.93.227:3000/customer/customers')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data) // Prints result from `response.json()` in getRequest
-      })
-      .catch(error => console.error(error))
       //Axios.ajax({url:'/customers'})
       //fetch('https://192.168.93.227:3000/customer/customers').then(res => console.log(res.json()));
-      console.log('appName-----ttttt');
   }
 
   handlePress() {
@@ -91,7 +145,11 @@ class App extends Component {
   }
 
   handlePress2() {
-    this.router.navigate('Movies');
+    this.router.navigate('Go');
+  }
+
+  handlePress3() {
+    this.router.navigate('Lottery');
   }
 
   render() {
@@ -137,6 +195,7 @@ class App extends Component {
             <Button onPress={this.handlePress.bind(this)} title={'press'}/> 
             <Button onPress={this.handlePress1.bind(this)} title={'press1'}/> 
             <Button onPress={this.handlePress2.bind(this)} title={'movies'}/> 
+            <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
       </View>
     );
   }
@@ -152,6 +211,18 @@ const AppNavigator = createStackNavigator({
       },
       Web: {
           screen: Web
+      },
+      Go: {
+          screen: GoScreen,
+          // navigationOptions: {
+          //   transitionConfig
+          // }
+      },
+      Act: {
+          screen: Act
+      },
+      Slider: {
+          screen: Slider
       },
       // HighOrder: {
       //     screen: HighOrder
@@ -182,6 +253,12 @@ const AppNavigator = createStackNavigator({
       },
       Movies: {
         screen: Movies
+      },
+      Tinder: {
+        screen: Tinder
+      },
+      Lottery: {
+        screen: Lottery
       }
 },
 {
@@ -190,14 +267,23 @@ const AppNavigator = createStackNavigator({
   defaultNavigationOptions: {
     headerStyle: {
       backgroundColor: '#f4511e',
+      height: 0,
+      overflow: 'hidden'
     },
     headerTintColor: '#fff',
     headerTitleStyle: {
       fontWeight: 'bold'
     }
-  }
+  },
 }
 )
+
+const Apps = createStackNavigator({
+  Go: { screen: GoScreen },
+    }, {
+  initialRouteName: 'Go',
+  transitionConfig
+})
 
 const AppContainer = createAppContainer(AppNavigator)
 

@@ -4,8 +4,11 @@ import android.app.Application;
 import com.myapp.CustomToastPackage;
 import com.myapp.BulbPackage;
 import com.facebook.react.ReactApplication;
+import com.wix.interactable.Interactable;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
+import com.BV.LinearGradient.LinearGradientPackage; // <--- This!
+
 import com.rnfs.RNFSPackage;
 import cl.json.RNSharePackage;
 import cl.json.ShareApplication;
@@ -32,6 +35,7 @@ public class MainApplication extends Application implements ShareApplication, Re
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new Interactable(),
             new ReanimatedPackage(),
             new VectorIconsPackage(),
             new RNFSPackage(),
@@ -40,7 +44,8 @@ public class MainApplication extends Application implements ShareApplication, Re
             new RNViewOverflowPackage(),
             new RNGestureHandlerPackage(),
             new CustomToastPackage(),
-            new BulbPackage() 
+            new BulbPackage(),
+            new LinearGradientPackage() 
       );
     }
 

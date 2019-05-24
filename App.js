@@ -9,10 +9,10 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View, TouchableOpacity, FlatList, PanResponder, Easing,
-  SectionList, Dimensions, Animated, Button, UIManager, YellowBox} from 'react-native';
+  SectionList, Dimensions, Animated, Button, UIManager, YellowBox, Image} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import Share from 'react-native-share';
-
+import PubSub from 'pubsub-js'
+import ImagePicker from 'react-native-image-picker'
 import {createStackNavigator, createAppContainer, createNavigator} from 'react-navigation'
 import NavigationService from './src/navigationService'
 import Detail from './src/page/detail'
@@ -32,9 +32,10 @@ import Clock from './src/page/clock'
 import Twitter from './src/page/twitter'
 import Tinder from './src/page/tinder'
 import GoScreen from './src/component/goScreen'
-import Act from './src/page/mayday/interact'
+// import Act from './src/page/mayday/interact'
 import Slider from './src/page/mayday/slider'
 import Lottery from './src/page/mayday/lottery'
+import Basket from './src/page/mayday/lotteryBasket'
 import Axios from './src/tool/axios'
 
 const instructions = Platform.select({
@@ -43,6 +44,8 @@ const instructions = Platform.select({
     'Double tap R on your keyboard to reload,\n' +
     'Shake or press menu button for dev menu',
 });
+
+Component.prototype.$react = PubSub;
 
 YellowBox.ignoreWarnings(['Warning: ']);
 
@@ -106,7 +109,21 @@ Component.prototype.router = NavigationService
 
 const overrideRenderItem = ({ item, index, section: { title, data } }) => <Text key={index}>Override{item}</Text>
 
+const options = {
+  title: 'Select Avatar',
+  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }, { name: 'qqq', title: 'Choose Photo from qqqk' }],
+  chooseFromLibraryButtonTitle: '从相册中选择',
+  takePhotoButtonTitle: '拍照片',
+  storageOptions: {
+    skipBackup: true,
+    path: 'images',
+  },
+};
+
 class App extends Component {
+  state = {
+      avatarSource: ''
+  }
   
   componentWillMount() {
        this._animatedValue = new Animated.ValueXY(0,0);
@@ -152,6 +169,29 @@ class App extends Component {
     this.router.navigate('Lottery');
   }
 
+  showImage() {
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+    
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri };
+        console.log(source);
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+    
+        this.setState({
+          avatarSource: source,
+        });
+      }
+    });
+  }
+
   render() {
     const animatedStyle = {
       transform: this._animatedValue.getTranslateTransform()
@@ -161,13 +201,17 @@ class App extends Component {
             <View style={styles.topRow}  onStartShouldSetResponder={() => alert('You click by View')}>
                   <View style={[styles.top, {backgroundColor:'yellow'}]}>      
                   </View>
-                  <View style={[styles.top, {backgroundColor:'green'}]}>      
-                  </View>
+                  <TouchableOpacity onPress={this.showImage.bind(this)}>
+                    <View style={[styles.top, {backgroundColor:'green'}]}>
+                       <Text>eeeeeeeeeeeee</Text>      
+                    </View>
+                  </TouchableOpacity> 
                   <View style={[styles.top, {backgroundColor:'pink'}]}>      
                   </View>
             </View>
-            
-            <SectionList
+            <Image source={this.state.avatarSource} style={{width:100, height:100}} />
+
+            {/* <SectionList
               renderItem={({item, index, section}) => 
                     <View style={styles.header}>
                         <Text key={index}>{item}{index}</Text>
@@ -189,7 +233,7 @@ class App extends Component {
                 // {title: 'Title3', data: ['item5', 'item6']}
               ]}
               keyExtractor={(item, index) => item + index}
-            />
+            /> */}
 
             <Animated.View style={[styles.circle, animatedStyle]}></Animated.View>  
             <Button onPress={this.handlePress.bind(this)} title={'press'}/> 
@@ -218,11 +262,15 @@ const AppNavigator = createStackNavigator({
           //   transitionConfig
           // }
       },
-      Act: {
-          screen: Act
-      },
+      // Act: {
+      //     screen: Act
+      // },
       Slider: {
           screen: Slider
+      },
+
+      Basket: {
+          screen: Basket
       },
       // HighOrder: {
       //     screen: HighOrder

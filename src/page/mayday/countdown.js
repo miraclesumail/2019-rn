@@ -28,6 +28,8 @@ export default class CountDown extends Component {
         const timer = setInterval(() => {
              if(!time){
                  clearInterval(timer);
+                 this.props.ws.send(JSON.stringify({type: 'newDate'}));
+                 this.$react.publish('updateTempHistory');
                  this.beginCountDown(timeArr);
                  return;
              }
@@ -44,8 +46,6 @@ export default class CountDown extends Component {
 
     // 这里有坑 父组件state改变不止一次触发该事件
     componentWillReceiveProps(nextProps){
-        console.log(nextProps);
-        console.log('nextProps');
         if(nextProps.timeArr.length != this.props.timeArr.length){
              console.log('receive props');
             // this.setState({timeArr: nextProps.timeArr.slice()});

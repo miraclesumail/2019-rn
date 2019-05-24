@@ -1,122 +1,16 @@
 import React, { Component, Fragment } from 'react'
-import { Text, View, StyleSheet, TouchableWithoutFeedback, Dimensions, Animated, Easing, ScrollView, FlatList } from 'react-native'
+import { Text, View, StyleSheet, TouchableWithoutFeedback, Dimensions, Animated, Easing, ScrollView, FlatList, PanResponder } from 'react-native'
+import YuanMode from './yuanMode'
+import MovingBall from './movingBall'
 import CountDown from './countdown'
 import LotteryMenu from './lotteryMenu'
+import HistoryTable from './historyTable'
 import {Wuxing, SiXing} from './wuxing'
-import {gamesList} from './gameList'
+import { gamesList, utils } from './gameList'
+import {connect} from 'react-redux'
 const {width, height} = Dimensions.get('window');
 
-console.log(WebSocket);
-
-const ws = new WebSocket('http://192.168.93.227:3000');
-
-// 圆角分模式切换
-class YuanMode extends Component {
-    constructor(props){
-        super(props);
-
-        this.select = new Animated.Value(0);
-        this.transform = 0;
- 
-        this.select.addListener(({value}) => {
-             this.transform = value;
-        })
- 
-        this.y = this.select.interpolate({
-            inputRange:[0, 10],
-            outputRange:[0, -100],
-            extrapolate:'clamp'
-        })
-    }  
-
-    toggleSelect = () => {
-        Animated.timing(this.select, {
-            toValue: this.transform == 0 ? 10 : 0,
-            duration: 500,
-            easing:Easing.bezier(.4, .7, .58, .75)
-        }).start();
-    }
-
-    render() {
-        const transformStyle = {
-            transform: [
-                {translateY: this.y}
-            ]
-        }
-        const {mode, changeMode} = this.props;
-
-        const modeText = mode == 1 ? '元' : mode == .1 ? '角' : '分';
-        return (
-            <Fragment>
-                <Animated.View style={[styles.tabMenu, transformStyle]}>
-                        <TouchableWithoutFeedback onPress={() => {changeMode(1); this.toggleSelect()}}>
-                             <View style={[styles.mode, {backgroundColor:mode == 1 ? '#f5d300' : 'yellowgreen', borderTopLeftRadius:10, borderTopRightRadius:10}]}>
-                                <Text>元</Text>
-                             </View>
-                        </TouchableWithoutFeedback>
-                        <TouchableWithoutFeedback onPress={() => {changeMode(.1); this.toggleSelect()}}>
-                             <View style={[styles.mode, {backgroundColor:mode == .1 ? '#f5d300' : 'yellowgreen'}]}>
-                                  <Text>角</Text>
-                             </View>
-                        </TouchableWithoutFeedback>
-                        <TouchableWithoutFeedback onPress={() => {changeMode(.01); this.toggleSelect()}}>
-                             <View style={[styles.mode, {backgroundColor:mode == .01 ? '#f5d300' : 'yellowgreen', borderBottomLeftRadius:10, borderBottomRightRadius:10}]}>
-                                  <Text>分</Text>
-                             </View>
-                        </TouchableWithoutFeedback>
-                </Animated.View>  
-                <View style={{width:102, height:70, borderRightWidth:2, backgroundColor:'#3FD7BE', borderRightColor: '#f5d300', position:'absolute', left:0, bottom:0, zIndex:100}}>        
-                    <TouchableWithoutFeedback onPress={() => this.toggleSelect()}>
-                        <View style={styles.cashMode}>
-                                <Text style={{color:'white'}}>{modeText}模式</Text>
-                        </View>
-                    </TouchableWithoutFeedback>   
-                </View>     
-            </Fragment>
-           
-        )
-    }
-}
-
-// 添加购彩蓝的小球
-class MovingBall extends Component {
-   
-    MoveX = new Animated.Value(0);
-
-    MoveY = new Animated.Value(0);
-
-    // y = -0.04*(Math.pow(x,2) - 100*x)
-
-    componentDidMount() {
-        this.MoveX.addListener(({value}) => {
-             this.MoveY.setValue(0.005*(Math.pow(value,2) - 230*value))
-        })
-
-        setTimeout(() => {
-            Animated.timing(this.MoveX, {
-                toValue: 230,
-                duration: 700,
-                easing: Easing.bezier(.41, .64, .51, .7)
-            }).start(() => {
-                this.props.changeBall(false);
-                this.props.addCart();
-            })
-        }, 0)
-    }
-
-    render() {
-        const translate = {
-              transform: [
-                  {translateY: this.MoveY},
-                  {translateX: this.MoveX}
-              ]
-        }
-        return (
-            <Animated.View style={{position:'absolute', top:-20, width:20, height:20, borderRadius:10, backgroundColor:'red', left:130, ...translate}}>
-            </Animated.View>  
-        )
-    }
-}
+const ws = new WebSocket('ws://192.168.93.227:3006');
 
 const SharedSnackbarContext = React.createContext();
 
@@ -192,19 +86,6 @@ function handleOperation({index, operate, gameArr}) {
             })        
 }
 
-function HistoryLine({item}) {
-    const index = item.index % 2;
-    return (
-        <View style={{width, height:30, backgroundColor: index ? 'grey' : '#f0f0f0', flexDirection:'row', }}>
-            <View style={{width:.25*width, height:30, justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>{item.number}</Text></View>
-            <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>{item.daxiao}</Text></View>
-            <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>{item.jiou}</Text></View>
-            <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>{item.hezhi}</Text></View>
-            <View style={{flex:1, justifyContent:'center', alignItems:'center'}}><Text>{item.balls}</Text></View>
-        </View>
-    )
-}
-
 // 彩票主组件
 export class Lottery extends Component {
   constructor(props){
@@ -214,6 +95,7 @@ export class Lottery extends Component {
           gameName: '',
           chooseIndex: 0,
           childIndex: [0, 0],
+          gameId: gamesList[0].children[0].children[0].id,
           components: [<Wuxing/>, <SiXing/>],
           gameArr: initArr,
           validBet: 0,
@@ -221,23 +103,18 @@ export class Lottery extends Component {
           timeArr: [],
           showBall: false,
           addedToCart: 0,
-          sequences: initSequences,
-          history: [
-              {number:11122, daxiao:'大', jiou:'偶', hezhi:15, balls:'53232', index:0},
-              {number:11122, daxiao:'大', jiou:'偶', hezhi:15, balls:'53232', index:1},
-              {number:11122, daxiao:'大', jiou:'偶', hezhi:15, balls:'53232', index:2}
-          ]
+          sequences: initSequences
        }
   
+       this.myRef = React.createRef();
        this.opacity = new Animated.Value(0);
+       this.hasChange = false;
   }  
 
   componentDidMount(){
         fetch('http://192.168.93.227:3000/customer/times')
         .then(response => response.json())
         .then(data => {
-            console.log(data);
-            console.log('reddd'); 
            this.setState({timeArr: data})  
         })
         .catch(error => console.error(error))
@@ -274,10 +151,20 @@ export class Lottery extends Component {
       this.setState({sequences: gamesList[chooseIndex].children[i].children[j].balls.map(item => item.key)})
   }
 
+  // 计算注单数
   calculateNumber = () => {
-      const {gameArr} = this.state;
-      const numbers = gameArr.map(item => item.filter(v => v == 1).length);
-      return numbers.reduce((prev, next) => prev*next)
+      const {gameId, gameArr} = this.state;
+      if(utils.calculate['' + gameId]) {
+          return utils.calculate['' + gameId](gameArr);
+      }else{
+          return this.normalCalculate();  
+      }
+  }
+
+  normalCalculate = () => {
+        const {gameArr} = this.state;
+        const numbers = gameArr.map(item => item.filter(v => v == 1).length);
+        return numbers.reduce((prev, next) => prev*next)
   }
 
   toggleMask = (flag) => {
@@ -296,9 +183,14 @@ export class Lottery extends Component {
   }
 
   addToCart = () => {
-         const { validBet, gameArr } = this.state;
+         const { validBet, gameArr, gameName, mode, gameId } = this.state;
          if(!validBet) return;
          this.setState({showBall: true});
+
+         // {gameName: '直选 五星1', numbers:'05 07|08|03 09|07 08 06', beishu:1, zushu:2, total:100},
+         const name = gameName.split(' ')[1] + ' ' + gameName.split(' ')[2];
+         const lottery = { gameName: name,  gameId, numbers: utils.getBasketInfo(gameArr), beishu:1, zushu: validBet, total: validBet*mode*2};
+         this.props.addToBasket({lottery :[lottery]});
 
          const tempArr = gameArr.map((item,index) => {
                const ii = item.map((v) => {return 0});
@@ -308,6 +200,17 @@ export class Lottery extends Component {
          this.setState({gameArr: tempArr}, () => {
                this.setState({validBet: this.calculateNumber()})
          })
+  }
+
+  randomOneBet = () => {
+        const {gameId, gameArr} = this.state;
+        if(utils.randomChoose['' + gameId]) {
+            this.setState({gameArr: utils.randomChoose['' + gameId](gameArr.slice())}, () => {
+                 this.setState({validBet: this.calculateNumber()})
+            });
+        }else{
+            this.randomChoose();  
+        }
   }
 
   randomChoose = () => {
@@ -341,27 +244,37 @@ export class Lottery extends Component {
         })
   }
 
+  goBasket() {
+      const {gameName, gameId, gameArr, chooseIndex, childIndex} = this.state;
+      const gArr = gameArr.slice().map(v => {
+           v.map(i => 0);
+           return v
+      })
+      const maxBei = gamesList[chooseIndex].children[childIndex[0]].children[childIndex[1]].maxBei;
+      console.log(maxBei);
+      console.log('maxBei--------------------');
+      if(this.state.addedToCart) this.props.navigation.navigate('Basket', {gameName, gameId, gArr, maxBei});
+  }
+
   handleOperation = (index, operate) => {
       const { gameArr } = this.state;
       this.dealPromise(handleOperation({index, operate, gameArr}), 'gameArr', this.calculateNumber);  
   }
 
-  _keyExtractor = (item, index) => index + 'qq'
-
   render() {
-    const {show, gameName, history, gameArr, mode, validBet, showBall, addedToCart, sequences, timeArr} = this.state;
+    const {show, gameName, gameArr, mode, validBet, showBall, addedToCart, sequences, timeArr} = this.state;
+    console.log(this.props.basketDatas, '------');
     const mask = show ? (<TouchableWithoutFeedback onPress={() => {this.setState({show:false});this.toggleMask(false)}}> 
         <Animated.View style={{position:'absolute', top:30, height: height - 30, width, backgroundColor: '#1B262A', opacity:this.opacity}}>
         </Animated.View>
     </TouchableWithoutFeedback>) : null; 
 
     const betAmount = validBet*mode*2; 
-
     return (
       <SharedSnackbarContext.Provider value={{
            add: (i,j) => {this.toggleArr(i,j)},
            gameArr,
-           handleOperation: this.handleOperation
+           handleOperation: this.handleOperation,
       }}>  
         <View style={{width, height, alignItems:'center'}}>
             <TouchableWithoutFeedback onPress={() => {this.setState({show:true}); this.toggleMask(true)}}>
@@ -370,30 +283,15 @@ export class Lottery extends Component {
                     </View>
             </TouchableWithoutFeedback> 
 
-
-            <CountDown timeArr={timeArr}/>
-
-            <View style={{width, height:120}}>
-                 <View style={{width, height:30, flexDirection:'row', backgroundColor:'pink' }}>
-                       <View style={{width:.25*width, height:30, justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>期数</Text></View>
-                       <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>大小</Text></View>
-                       <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>奇偶</Text></View>
-                       <View style={{width:.12*width, height:30,justifyContent:'center', alignItems:'center', borderRightColor:'pink', borderRightWidth:1}}><Text>和值</Text></View>
-                       <View style={{flex:1, justifyContent:'center', alignItems:'center'}}><Text>号码</Text></View>
-                 </View>
-
-                <FlatList
-                    data={history}
-                    renderItem={({item}) => <HistoryLine item={item} />}
-                    keyExtractor={this._keyExtractor} 
-                />
-            </View>    
-          
+            <CountDown timeArr={timeArr} ws={ws}/>
+            
+            <HistoryTable ws={ws}/>
+           
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom:80}}> 
                  <Wuxing sequences={sequences}/>
             </ScrollView>
 
-            <View style={styles.bottomFixed}> 
+            <View style={[styles.bottomFixed]}> 
                 <TouchableWithoutFeedback onPress={() => this.addToCart()}>
                     <View style={[styles.choooseAmount, {backgroundColor: validBet > 0 ? '#FF8C00' : '#8A8186'}]}>
                         <Text>已选择{this.state.validBet}注</Text>
@@ -404,18 +302,20 @@ export class Lottery extends Component {
                     <Text style={{color:'white'}}>总共{betAmount}元</Text>
                 </View> 
 
-                <TouchableWithoutFeedback onPress={() => this.randomChoose()}>
+                <TouchableWithoutFeedback onPress={() => this.randomOneBet()}>
                     <View style={[styles.choooseAmount, {backgroundColor: '#853FD7'}]}>
                         <Text style={{color:'white'}}>机选一注</Text>
                     </View> 
                 </TouchableWithoutFeedback>
 
-                <View style={styles.shoppigCart}>
-                      <View style={{position:'absolute', width:18, height:18, borderRadius:9, backgroundColor:'pink', justifyContent:'center', alignItems: 'center',top:3,right:3}}>
-                            <Text>{addedToCart}</Text>
-                      </View>
-                      <Text>购物车</Text>
-                </View>
+                <TouchableWithoutFeedback onPress={this.goBasket.bind(this)}>
+                    <View style={styles.shoppigCart}>
+                        <View style={{position:'absolute', width:18, height:18, borderRadius:9, backgroundColor:'pink', justifyContent:'center', alignItems: 'center',top:3,right:3}}>
+                                <Text>{addedToCart}</Text>
+                        </View>
+                        <Text>购物车</Text>
+                    </View>
+                </TouchableWithoutFeedback>
                
                 {showBall ? <MovingBall changeBall={(showBall) => this.setState({showBall})} addCart={() => this.addCartByone()}/> : null}      
             </View> 
@@ -423,14 +323,29 @@ export class Lottery extends Component {
    
             {mask} 
             <LotteryMenu show={show} setName={(gameName, chooseIndex) => this.setState({gameName, chooseIndex})} closeModal = {() => {this.setState({show:false});this.toggleMask(false)}}
-              setChildIndex={(i,j) => this.setChildIndex(i,j)}/>       
+              setChildIndex={(i,j) => this.setChildIndex(i,j)} setGameId={(gameId) => this.setState({gameId})}/>       
         </View>
       </SharedSnackbarContext.Provider>  
     )
   }
 }
 
-export default Lottery
+
+function mapStateToProps (state) {
+    return {
+       gamesList: state.lottery.gamesList,
+       basketDatas: state.lottery.basketDatas
+    }
+  }
+  
+function mapDispatchToProps (dispatch) {
+    return {
+      toggleLike: (id) => dispatch({type: 'toggleLike', id}),
+      addToBasket: ({lottery}) => dispatch({type: 'addLotteryToBasket', lottery})
+    }
+  }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Lottery);
 
 export const SharedSnackbarConsumer = SharedSnackbarContext.Consumer;
 
@@ -441,26 +356,6 @@ const styles = StyleSheet.create({
           backgroundColor:'yellowgreen',
           alignItems: 'center',
           justifyContent: 'center'
-      },
-      cashMode: {
-           position:'absolute', width:100, height:70, bottom:0,
-           flexDirection:'row',
-           backgroundColor:'#3FD7BE',
-           justifyContent:'center',
-           alignItems:'center',
-           paddingBottom:23
-      },
-      mode: {
-          width:90,
-          height:33,
-          justifyContent:'center',
-          alignItems:'center',
-      },
-      tabMenu: {
-          position:'absolute', width:90, 
-          height: 99, borderRadius:10, 
-          backgroundColor:'yellowgreen', left:5,
-        bottom:-29
       },
       choooseAmount: {
           width:80, height:70,

@@ -69,3 +69,4 @@ export default class LotteryBall extends Component {
           )
       }
 }
+

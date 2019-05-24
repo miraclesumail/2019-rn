@@ -4,14 +4,12 @@ import android.app.Application;
 import com.myapp.CustomToastPackage;
 import com.myapp.BulbPackage;
 import com.facebook.react.ReactApplication;
-import com.wix.interactable.Interactable;
+import com.imagepicker.ImagePickerPackage;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.BV.LinearGradient.LinearGradientPackage; // <--- This!
 
 import com.rnfs.RNFSPackage;
-import cl.json.RNSharePackage;
-import cl.json.ShareApplication;
 import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.entria.views.RNViewOverflowPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
@@ -23,7 +21,7 @@ import com.facebook.soloader.SoLoader;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainApplication extends Application implements ShareApplication, ReactApplication {
+public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
     @Override
@@ -35,11 +33,10 @@ public class MainApplication extends Application implements ShareApplication, Re
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new Interactable(),
+            new ImagePickerPackage(),
             new ReanimatedPackage(),
             new VectorIconsPackage(),
             new RNFSPackage(),
-            new RNSharePackage(),
             new RNDeviceInfo(),
             new RNViewOverflowPackage(),
             new RNGestureHandlerPackage(),
@@ -66,8 +63,8 @@ public class MainApplication extends Application implements ShareApplication, Re
     SoLoader.init(this, /* native exopackage */ false);
   }
 
-  @Override
-  public String getFileProviderAuthority() {
-         return BuildConfig.APPLICATION_ID + ".provider";
-  }
+  // @Override
+  // public String getFileProviderAuthority() {
+  //        return BuildConfig.APPLICATION_ID + ".provider";
+  // }
 }

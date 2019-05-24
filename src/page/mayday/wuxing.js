@@ -121,7 +121,7 @@ class ChooseBlock extends Component {
         return (
             <SharedSnackbarConsumer>
                 {({add, gameArr, handleOperation}) => (
-                  <View style={[styles.block, {backgroundColor}]}>
+                  <View style={[styles.block, {backgroundColor, marginTop: index == 0 ? 0 : 20}]}>
                         <View style={{width:width*.2, height:.5.width, justifyContent:'center', alignItems: 'center'}}>
                                 <Text style={{fontSize:20, color:'yellow'}}>{title}</Text>
                         </View>
@@ -172,8 +172,7 @@ const styles = StyleSheet.create({
           paddingVertical: .05*width,
           borderRadius: 10,
           flexDirection: 'row',
-          paddingRight: .08*width,
-          marginTop: 20
+          paddingRight: .08*width
       },
       ball: {
           width:width*.12, height:width*.12, 

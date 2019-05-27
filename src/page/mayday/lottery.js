@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react'
-import { Text, View, StyleSheet, TouchableWithoutFeedback, Dimensions, Animated, Easing, ScrollView, FlatList, PanResponder } from 'react-native'
+import { Text, View, StyleSheet, TouchableWithoutFeedback, Dimensions, Animated, Easing, ScrollView, FlatList, PanResponder, Alert } from 'react-native'
 import YuanMode from './yuanMode'
 import MovingBall from './movingBall'
 import CountDown from './countdown'
@@ -115,9 +115,13 @@ export class Lottery extends Component {
         fetch('http://192.168.93.227:3000/customer/times')
         .then(response => response.json())
         .then(data => {
+            console.log(data);
            this.setState({timeArr: data})  
         })
-        .catch(error => console.error(error))
+        .catch(error => {
+            
+            console.log('datakkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk');
+            console.error(error)})
   }
  
   toggleArr = (i,j) => {

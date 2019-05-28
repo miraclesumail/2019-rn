@@ -161,7 +161,8 @@ class App extends Component {
      changedLayouts:[],
      transformStyles:[new ValueXY({x:0, y:0}), new ValueXY({x:0, y:0}), new ValueXY({x:0, y:0}),new ValueXY({x:0, y:0}),new ValueXY({x:0, y:0}),new ValueXY({x:0, y:0}),
                       new ValueXY({x:0, y:0}), new ValueXY({x:0, y:0}), new ValueXY({x:0, y:0})],
-     layoutArr:[]                 
+     layoutArr:[],
+     chooseIndex:[]               
   }
   
   componentWillMount() {
@@ -263,12 +264,21 @@ class App extends Component {
        this.setState({layoutArr})
   }
 
+  addChooseIndex = (i) => {
+      if(i == -1) {
+        this.setState({chooseIndex: []})
+        return;
+      }
+      const {chooseIndex} = this.state;
+      this.setState({chooseIndex:[...chooseIndex, i]});
+  }
+
   render() {
     const animatedStyle = {
       transform: this._animatedValue.getTranslateTransform()
     }
 
-    const {transformStyles} = this.state;
+    const {chooseIndex} = this.state;
     return (
      
             <View style={styles.container}>
@@ -276,19 +286,32 @@ class App extends Component {
             {/* <Button onPress={this.handlePress.bind(this)} title={'press'}/> 
             <Button onPress={this.handlePress1.bind(this)} title={'press1'}/> 
             <Button onPress={this.handlePress2.bind(this)} title={'movies'}/>  */}
-            <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
-            
 
-            <View style={{width:widths, flexDirection:'row', flexWrap:'wrap', paddingHorizontal:.02*widths, marginTop:20}}>
-                 {
-                      [1,1,1,1,1,1,1,1,1].map((v,i) => {
-                           const transformStyle = {transform: transformStyles[i].getTranslateTransform()};
-                           return (
-                             <DragBox addToLayout={(layout) => this.addToLayout(layout)} layoutArr={this.state.layoutArr} originIndex={i}>
+             {/* <DragBox addToLayout={(layout) => this.addToLayout(layout)} layoutArr={this.state.layoutArr} originIndex={i}>
                                   <Animated.View style={{width:.3*widths, height:120, marginRight: (i==0 || (i+1)%3) ? .03*widths : 0, marginBottom:15, ...transformStyle}}>
                                       <Image source={this.state.imgs[i]} style={{width:.3*widths, height:100}}/>
                                       <View style={{width:.3*widths, height:20, justifyContent:'center', alignItems:'center', backgroundColor:'yellowgreen'}}><Text>第{i+1}个</Text></View>
                                   </Animated.View>
+                             </DragBox> */}
+            <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
+            
+            {/* <View style={{width:widths, flexDirection:'row', flexWrap:'wrap', paddingHorizontal:.02*widths, marginTop:20}}></View> */}
+            <View style={{width:widths, paddingHorizontal:.02*widths, marginTop:20}}>
+                 {
+                      [1,1,1,1,1,1,1,1,1].map((v,i) => {
+                           //const transformStyle = {transform: transformStyles[i].getTranslateTransform()};
+                           const position = {
+                                 position:'absolute',
+                                 left: i%3*.33*widths + .02*widths,
+                                 top: Math.floor(i/3)*135
+                           }
+                           return (
+                             <DragBox chooseIndex={chooseIndex}  addToLayout={(layout) => this.addToLayout(layout)} addChooseIndex={(i) => this.addChooseIndex(i)} layoutArr={this.state.layoutArr} originIndex={i} style={{width:.3*widths, alignItems:'center', height:120, marginBottom:15, ...position}}>
+                                  {/* <Animated.View style={{width:.3*widths, height:120, marginRight: (i==0 || (i+1)%3) ? .03*widths : 0, marginBottom:15}}> */}
+                                  {/* <View style={{width:.3*widths, height:120, marginBottom:15, ...position}}> */}
+                                      <Image source={this.state.imgs[i]} style={{width:.28*widths, height:98}}/>
+                                      <View style={{width:.28*widths, height:18, justifyContent:'center', alignItems:'center', backgroundColor:'yellowgreen'}}><Text>第{i+1}个</Text></View>
+                                  {/* </View> */}
                              </DragBox>
                            )
                       })

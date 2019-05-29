@@ -89,64 +89,10 @@ class DragBox extends Component {
                     const tempLayout = layoutArr[i];
                     // 循环比较每一个layoutArr的元素
 
-                    //this.checkPosIntersection([topLeft, topRight, botLeft, botRight], i, tempLayout);
-                    if(inRange(topLeft, tempLayout)) {
-                        const deltaX = tempLayout.rightBot.x - topLeft.x;
-                        const deltaY = tempLayout.rightBot.y - topLeft.y;
-                        const square = deltaX*deltaY;
-                        if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
-                        console.log(square);
-                        if(square > 80*80) {
-                            console.log(square);
-                            console.log('于第' + i + 'okkk');           
-                            // 将2个矩形区域 调换位置
-                            this.movingBlock(i);
-                            return 
-                        }
-                        continue
-                    }
+                    if(this.checkPosIntersection([topLeft, topRight, botLeft, botRight], i, tempLayout) == 3) return;
+                  
+                    continue; 
                     
-                    if(inRange(topRight, tempLayout)) {
-                            const deltaX = topRight.x - tempLayout.leftTop.x;
-                            const deltaY = tempLayout.rightBot.y - topRight.y;
-                            const square = deltaX*deltaY;
-                            console.log(square);
-                            if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
-                            if(square > 80*80) {
-                                console.log('在右上角' + changedIndex + 'dddd格尔和人格ddddddd');
-                                this.movingBlock(i);  
-                                return                           
-                            }
-                            continue
-                    }
-
-                    if(inRange(botLeft, tempLayout)) {
-                            console.log(tempLayout);
-                            const deltaX = tempLayout.rightBot.x - botLeft.x;
-                            const deltaY = botLeft.y - tempLayout.leftTop.y;
-                            const square = deltaX*deltaY;
-                            if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
-                            if(square > 80*80) {
-                                console.log('于第' + i + 'okkk123');
-                                this.movingBlock(i);
-                                return; 
-                            }
-                            continue
-                    }
-
-                    if(inRange(botRight, tempLayout)) {
-                        const deltaX = botRight.x - tempLayout.leftTop.x;
-                        const deltaY = botRight.y - tempLayout.leftTop.y;
-                        const square = deltaX*deltaY;
-                        if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
-                        if(square > 80*80) {
-                            console.log(square);
-                            console.log('于第' + i + 'okkk456');
-                            this.movingBlock(i);
-                            return; 
-                        }
-                        continue
-                    }
             }
 
             // 手势连续拖动 如何解决
@@ -219,32 +165,34 @@ class DragBox extends Component {
             if(inRange(disArrs[i], tempLayout)) key = i;
             let deltaX, deltaY, square;
             if(key == 0){
-                deltaX = tempLayout.rightBot.x - topLeft.x;
-                deltaY = tempLayout.rightBot.y - topLeft.y;
+                deltaX = tempLayout.rightBot.x - disArrs[key].x;
+                deltaY = tempLayout.rightBot.y - disArrs[key].y;
             }
             if(key == 1){
-                deltaX = topRight.x - tempLayout.leftTop.x;
-                deltaY = tempLayout.rightBot.y - topRight.y;
+                deltaX = disArrs[key].x - tempLayout.leftTop.x;
+                deltaY = tempLayout.rightBot.y - disArrs[key].y;
             }
             if(key == 2){
-                deltaX = tempLayout.rightBot.x - botLeft.x;
-                deltaY = botLeft.y - tempLayout.leftTop.y;
+                deltaX = tempLayout.rightBot.x - disArrs[key].x;
+                deltaY = disArrs[key].y - tempLayout.leftTop.y;
             }
             if(key == 3){
-                deltaX = botRight.x - tempLayout.leftTop.x;
-                deltaY = botRight.y - tempLayout.leftTop.y;
+                deltaX = disArrs[key].x - tempLayout.leftTop.x;
+                deltaY = disArrs[key].y - tempLayout.leftTop.y;
             }
             square = deltaX*deltaY;
 
-            if(!this.props.chooseIndex.includes(index)) this.props.addChooseIndex(index);
-            
+            if(!this.props.chooseIndex.includes(index) && key!=null) this.props.addChooseIndex(index);
+                
             if(square > 80*80) {
-                console.log('在右上角' + changedIndex + 'dddd格尔和人格ddddddd');
                 this.movingBlock(index);
-                return                           
+                return 3                           
             }    
-            if(key) break;    
-        }    
+            if(key != null) return 2;    
+        }  
+        if(this.props.chooseIndex.includes(index)) this.props.decChooseIndex(index);
+            
+        return null;  
   }
 
   movingBlock = (i) => {
@@ -320,3 +268,59 @@ class DragBox extends Component {
 }
 
 export default DragBox;
+
+// if(inRange(topLeft, tempLayout)) {
+                    //     const deltaX = tempLayout.rightBot.x - topLeft.x;
+                    //     const deltaY = tempLayout.rightBot.y - topLeft.y;
+                    //     const square = deltaX*deltaY;
+                    //     if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
+                    //     console.log(square);
+                    //     if(square > 80*80) {
+                    //         console.log('于第' + i + 'okkk');           
+                    //         // 将2个矩形区域 调换位置
+                    //         this.movingBlock(i);
+                    //         return 
+                    //     }
+                    //     continue
+                    // }
+                    
+                    // if(inRange(topRight, tempLayout)) {
+                    //         const deltaX = topRight.x - tempLayout.leftTop.x;
+                    //         const deltaY = tempLayout.rightBot.y - topRight.y;
+                    //         const square = deltaX*deltaY;
+                    //         console.log(square);
+                    //         if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
+                    //         if(square > 80*80) {
+                    //             console.log('在右上角' + changedIndex + 'dddd格尔和人格ddddddd');
+                    //             this.movingBlock(i);  
+                    //             return                           
+                    //         }
+                    //         continue
+                    // }
+
+                    // if(inRange(botLeft, tempLayout)) {
+                    //         console.log(tempLayout);
+                    //         const deltaX = tempLayout.rightBot.x - botLeft.x;
+                    //         const deltaY = botLeft.y - tempLayout.leftTop.y;
+                    //         const square = deltaX*deltaY;
+                    //         if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
+                    //         if(square > 80*80) {
+                    //             console.log('于第' + i + 'okkk123');
+                    //             this.movingBlock(i);
+                    //             return; 
+                    //         }
+                    //         continue
+                    // }
+
+                    // if(inRange(botRight, tempLayout)) {
+                    //     const deltaX = botRight.x - tempLayout.leftTop.x;
+                    //     const deltaY = botRight.y - tempLayout.leftTop.y;
+                    //     const square = deltaX*deltaY;
+                    //     if(!this.props.chooseIndex.includes(i)) this.props.addChooseIndex(i);
+                    //     if(square > 80*80) {
+                    //         console.log('于第' + i + 'okkk456');
+                    //         this.movingBlock(i);
+                    //         return; 
+                    //     }
+                    //     continue
+                    // }

@@ -273,6 +273,12 @@ class App extends Component {
       this.setState({chooseIndex:[...chooseIndex, i]});
   }
 
+  decChooseIndex = (i) => {
+      let tempIndex = this.state.chooseIndex.slice();
+      tempIndex.splice(tempIndex.indexOf(i), 1);
+      this.setState({chooseIndex: tempIndex});
+  }
+
   render() {
     const animatedStyle = {
       transform: this._animatedValue.getTranslateTransform()
@@ -306,7 +312,7 @@ class App extends Component {
                                  top: Math.floor(i/3)*135
                            }
                            return (
-                             <DragBox chooseIndex={chooseIndex}  addToLayout={(layout) => this.addToLayout(layout)} addChooseIndex={(i) => this.addChooseIndex(i)} layoutArr={this.state.layoutArr} originIndex={i} style={{width:.3*widths, alignItems:'center', height:120, marginBottom:15, ...position}}>
+                             <DragBox chooseIndex={chooseIndex} decChooseIndex={(i) => this.decChooseIndex(i)} addToLayout={(layout) => this.addToLayout(layout)} addChooseIndex={(i) => this.addChooseIndex(i)} layoutArr={this.state.layoutArr} originIndex={i} style={{width:.3*widths, alignItems:'center', height:120, marginBottom:15, ...position}}>
                                   {/* <Animated.View style={{width:.3*widths, height:120, marginRight: (i==0 || (i+1)%3) ? .03*widths : 0, marginBottom:15}}> */}
                                   {/* <View style={{width:.3*widths, height:120, marginBottom:15, ...position}}> */}
                                       <Image source={this.state.imgs[i]} style={{width:.28*widths, height:98}}/>

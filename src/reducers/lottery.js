@@ -36,6 +36,8 @@ export default function lotteryReducer (state = initialState, action) {
          }     
       }) 
       
+    case 'emptyLottery': 
+       return {...state, basketDatas:[]}  
     case 'deleteLottery': 
        const newCollection = update(state.basketDatas, {$splice: [[action.index, 1]]});   
        return update(state.basketDatas, {basketDatas:{

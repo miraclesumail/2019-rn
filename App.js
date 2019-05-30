@@ -35,9 +35,11 @@ import GoScreen from './src/component/goScreen'
 // import Act from './src/page/mayday/interact'
 import Slider from './src/page/mayday/slider'
 import Lottery from './src/page/mayday/lottery'
+import LotteryRecord from './src/page/mayday/lotteryrecord'
 import Basket from './src/page/mayday/lotteryBasket'
 import Axios from './src/tool/axios'
 import DragBox from './src/page/mayday/dragbox'
+
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -49,6 +51,25 @@ const instructions = Platform.select({
 const { ValueXY } = Animated;
 
 Component.prototype.$react = PubSub;
+
+Date.prototype.Format = function(fmt)   
+{    
+  var o = {   
+    "M+" : this.getMonth()+1,                 //月份
+    "d+" : this.getDate(),                    //日
+    "h+" : this.getHours(),                   //小时
+    "m+" : this.getMinutes(),                 //分
+    "s+" : this.getSeconds(),                 //秒
+    "q+" : Math.floor((this.getMonth()+3)/3), //季度
+    "S"  : this.getMilliseconds()             //毫秒
+  };   
+  if(/(y+)/.test(fmt))   
+    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));   
+  for(var k in o)   
+    if(new RegExp("("+ k +")").test(fmt))   
+  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));   
+  return fmt;   
+}
 
 YellowBox.ignoreWarnings(['Warning: ']);
 
@@ -214,14 +235,17 @@ class App extends Component {
     this.router.navigate('Lottery');
   }
 
-  // shuttle imgs arr
+  handlePress5() {
+    this.router.navigate('Record');
+  }
+
+  // shuttle imgs arr 尝试了 transformStyle在 layoutAnimation中不生效
   handlePress4() {
      LayoutAnimation.configureNext(CustomLayoutAnimation);
      let initLayouts = this.state.initLayouts.slice();
      let changedLayouts = this.state.changedLayouts.slice();
      changedLayouts = shuffle(changedLayouts.length ? changedLayouts : initLayouts);
-    //  console.log(initLayouts);
-    //  console.log(changedLayouts);
+  
      const transformStyles = Array.from({length:9}).map((v,i) => {
            console.log(changedLayouts[i].x);
            console.log(initLayouts.x);
@@ -300,6 +324,7 @@ class App extends Component {
                                   </Animated.View>
                              </DragBox> */}
             <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
+            <Button onPress={this.handlePress5.bind(this)} title={'投注详情'}/> 
             
             {/* <View style={{width:widths, flexDirection:'row', flexWrap:'wrap', paddingHorizontal:.02*widths, marginTop:20}}></View> */}
             <View style={{width:widths, paddingHorizontal:.02*widths, marginTop:20}}>
@@ -391,6 +416,9 @@ const AppNavigator = createStackNavigator({
       },
       Lottery: {
         screen: Lottery
+      },
+      Record: {
+        screen: LotteryRecord
       }
 },
 {

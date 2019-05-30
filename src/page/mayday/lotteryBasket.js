@@ -1,10 +1,25 @@
 import React, { Component, Fragment, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, FlatList, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, FlatList, TouchableWithoutFeedback, Animated, Easing, Image } from 'react-native';
 import {connect} from 'react-redux'
 import { utils } from './gameList'
 import { setTimeout } from 'core-js';
 import YuanMode from './yuanMode'
 import RollingBall from './rollingBall'
+
+ //AES对称加密
+ //var secretkey="passwd";//唯一（公共）秘钥
+// var crypto = require('crypto');
+// var content = item.numbers;
+// var cipher = crypto.createCipher('aes192', secretkey);//使用aes192加密
+// var enc = cipher.update(content,"utf8","hex");//编码方式从utf-8转为hex;
+// enc += cipher.final('hex');//编码方式转为hex;
+//
+//AES对称解密
+// var decipher=crypto.createDecipher('aes192', secretkey);
+// var dec=decipher.update(enc,"hex", "utf8");
+// dec+=decipher.final("utf8");
+// console.log("AES对称解密结果："+dec);
+
 const {width, height} = Dimensions.get('window');
 
 function usePrevious(value) {
@@ -60,14 +75,6 @@ function BasketItem({item, index, deleteFromBasket}) {
      
 }
 
- /* {
-                              [1,1,1,1,1].map((v,i) => (
-                                  i == count ? 
-                                  <RollingBall text={i+1} count={i} setCount = {() => this.addCount()}/> : null
-                              ))
-                          } */
-                  
-
 class LotteryBasket extends Component {
   constructor(props) {
     super(props);
@@ -95,7 +102,6 @@ class LotteryBasket extends Component {
 
   componentDidMount() {
      this.$react.subscribe('receiveLottery', (msg, data) => {
-           console.log(data, '----');
            console.log(this.props.basketDatas);
            const chooseIndex = this.props.basketDatas.findIndex(item => item.gameId == data.id);
            console.log(chooseIndex);
@@ -103,17 +109,32 @@ class LotteryBasket extends Component {
            this.setState({showLottering: true})
      });
 
-    // fetch('http://192.168.93.227:3000/customer/createLottery', {
-    //     method: 'POST', // *GET, POST, PUT, DELETE, etc.
-    //     mode: 'cors', // no-cors, cors, *same-origin
-    //     cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //         // 'Content-Type': 'application/x-www-form-urlencoded',
-    //     },
-    //     body: JSON.stringify({game:'qqq', wanfa:'dddddddd', date:'2019-02-11', numbers:[1,2,3,4,5], content:'fwtwtwtetet'}), // body data type must match
-    // })
-    // .then(response => console.log(response.json()));
+   
+  }
+
+  submitLottery = () => {
+    const {basketDatas} = this.props;
+    const submitData = basketDatas.map(item => {
+          const date = new Date().Format("yyyy-MM-dd hh:mm:ss");
+          return {
+              game: '重庆时时彩', wanfa: item.gameName, date, gameId: item.gameId, content: item.numbers, beishu: item.beishu, zushu: item.zushu, total: item.total
+          }
+    }) 
+   
+    fetch('http://192.168.93.227:3000/customer/createLottery', {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, cors, *same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        headers: {
+            'Content-Type': 'application/json',
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify(submitData) // body data type must match
+    })
+    .then(response => {
+          console.log(response.json());
+          this.props.emptyLottery();
+    });
   }
 
   toggleShow = () => {
@@ -224,7 +245,21 @@ class LotteryBasket extends Component {
                          <TouchableWithoutFeedback onPress={() => this.addbei(1)}>
                                <View style={styles.operateNum2}><Text style={{fontSize:18}}>+</Text></View> 
                          </TouchableWithoutFeedback>
-                    </View>             
+                    </View>    
+
+                    <TouchableWithoutFeedback onPress={() => this.submitLottery()}>
+                        <View style={{width:.23*width, height:30, flexDirection:'row', position:'absolute', right:0, bottom:0, backgroundColor:'#9F79EE'}}>
+                            {
+                                basketDatas.length ? 
+                                <Image source={require('../assets/shoping.jpg')} resizeMode={'contain'} style={{width:.11*width, height:30}}/>:
+                                <Image source={require('../assets/shopcart.jpg')} resizeMode={'contain'} style={{width:.11*width, height:30}}/>
+                            }
+                            
+                            <View style={{width: .12*width, height: 30, justifyContent:'center', alignItems:'center'}}>
+                                <Text>购物车</Text>
+                            </View>
+                        </View>       
+                    </TouchableWithoutFeedback>              
             </View>
     )
   }
@@ -240,7 +275,8 @@ function mapStateToProps (state) {
 function mapDispatchToProps (dispatch) {
     return {
       addToBasket: ({lottery}) => dispatch({type: 'addLotteryToBasket', lottery}),
-      deleteFromBasket: (index) => dispatch({type: 'deleteLottery', index})
+      deleteFromBasket: (index) => dispatch({type: 'deleteLottery', index}),
+      emptyLottery: () => dispatch({type: 'emptyLottery'})
     }
   }
 

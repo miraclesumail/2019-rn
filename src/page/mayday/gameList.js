@@ -200,3 +200,14 @@ function getNumbers(arr, added = null){
      }     
 }
 
+
+export const lotteryRecords = [
+        {game: '重庆时时彩', wanfa: '直选 五星1', date:'2019-05-29', gameId: 113, content: '05 07|08|03 09|07 08 06', beishu:3, zushu: 1, total: 6, status:1 },
+        {game: '山东时时彩', wanfa: '直选 五星2', date:'2019-05-29', gameId: 113, content: '05 07|08 08 08|03 09|07 08 06', beishu:3, zushu: 2, total: 12, status:2},
+        {game: '天津时时彩', wanfa: '直选 五星3', date:'2019-05-11', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:2},
+        {game: '腾讯分分彩', wanfa: '直选 五星3', date:'2019-05-22', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:2},
+        {game: '天津时时彩', wanfa: '直选 五星3', date:'2019-05-28', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:1},
+        {game: '江西11选5', wanfa: '直选 五星3', date:'2019-05-23', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:3},
+        {game: '江西11选5', wanfa: '直选 五星3', date:'2019-05-23', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:2},
+        {game: '天津时时彩', wanfa: '直选 五星3', date:'2019-05-23', gameId: 113, content: '05 07|08 09|03 09|07 08 06', beishu:6, zushu: 1, total: 12, status:3}
+]

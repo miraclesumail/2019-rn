@@ -10,7 +10,7 @@ import { gamesList, utils } from './gameList'
 import {connect} from 'react-redux'
 const {width, height} = Dimensions.get('window');
 
-const ws = new WebSocket('ws://192.168.93.227:3006');
+const ws = new WebSocket('ws://192.168.84.115:3006');
 
 const SharedSnackbarContext = React.createContext();
 
@@ -112,7 +112,7 @@ export class Lottery extends Component {
   }  
 
   componentDidMount(){
-        fetch('http://192.168.93.227:3000/customer/times')
+        fetch('http://192.168.84.115:3000/customer/times')
         .then(response => response.json())
         .then(data => {
             console.log(data);

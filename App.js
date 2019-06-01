@@ -39,7 +39,7 @@ import LotteryRecord from './src/page/mayday/lotteryrecord'
 import Basket from './src/page/mayday/lotteryBasket'
 import Axios from './src/tool/axios'
 import DragBox from './src/page/mayday/dragbox'
-
+import KuaiSan from './src/page/mayday/kuaisan'
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -196,7 +196,7 @@ class App extends Component {
       const appName = DeviceInfo.getDeviceName();
       console.log('appName');
        //this.handlePress()
-      fetch('http://192.168.93.227:3000/customer/customers')
+      fetch('http://192.168.84.115:3000/customer/customers')
       .then(response => response.json())
       .then(data => {
         console.log(data) // Prints result from `response.json()` in getRequest
@@ -237,6 +237,10 @@ class App extends Component {
 
   handlePress5() {
     this.router.navigate('Record');
+  }
+
+  handlePress6() {
+    this.router.navigate('KuaiSan');
   }
 
   // shuttle imgs arr 尝试了 transformStyle在 layoutAnimation中不生效
@@ -325,6 +329,7 @@ class App extends Component {
                              </DragBox> */}
             <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
             <Button onPress={this.handlePress5.bind(this)} title={'投注详情'}/> 
+            <Button onPress={this.handlePress6.bind(this)} title={'快三'}/> 
             
             {/* <View style={{width:widths, flexDirection:'row', flexWrap:'wrap', paddingHorizontal:.02*widths, marginTop:20}}></View> */}
             <View style={{width:widths, paddingHorizontal:.02*widths, marginTop:20}}>
@@ -416,6 +421,9 @@ const AppNavigator = createStackNavigator({
       },
       Lottery: {
         screen: Lottery
+      },
+      KuaiSan: {
+        screen: KuaiSan
       },
       Record: {
         screen: LotteryRecord

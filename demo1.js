@@ -77,3 +77,94 @@ class progress {
           }, minTime + Math.random()*(maxTime - minTime))
       }
 }
+
+
+import React, { Component } from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+
+const {width, height} = Dimensions.get('window');
+
+class Cube extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+    };
+  }
+
+  render() {
+    return (
+      <View style={{width, height, justifyContent:'center', alignItems:'center'}}>
+           <View style={styles.cube1}><Text>1</Text></View>
+           <View style={styles.cube2}><Text>2</Text></View>
+           <View style={styles.cube3}><Text>3</Text></View>
+           <View style={styles.cube4}><Text>4</Text></View>
+           <View style={styles.cube5}><Text>5</Text></View>
+           <View style={styles.cube6}><Text>6</Text></View>
+      </View>
+    );
+  }
+}
+
+export default Cube;
+
+const styles = StyleSheet.create({
+      cube1: {
+          width:80,
+          height: 80,
+          backgroundColor:'#FFE4B5',
+          transform:[
+              {rotateY:'90deg'},
+              {translateX: -40}
+          ],
+          justifyContent:'center', alignItems:'center'
+      },
+    //   cube2: {
+    //     width:80,
+    //     height: 80,
+    //     backgroundColor:'#50BBEA',
+    //     transform:[
+    //         {translateZ: 40}
+    //     ],
+    //     justifyContent:'center', alignItems:'center'
+    //   },
+      cube3: {
+        width:80,
+        height: 80,
+        backgroundColor:'#CBEA50',
+        transform:[
+            {rotateY:'-90deg'},
+            {translateX: 40}
+        ],
+        justifyContent:'center', alignItems:'center'
+      },
+    //   cube4: {
+    //     width:80,
+    //     height: 80,
+    //     backgroundColor:'#CBEA50',
+    //     transform:[
+    //         {rotateX:'180deg'},
+    //         {translateZ: -40}
+    //     ],
+    //     justifyContent:'center', alignItems:'center'
+    //   },
+      cube5: {
+        width:80,
+        height: 80,
+        backgroundColor:'#CBEA50',
+        transform:[
+            {rotateX:'90deg'},
+            {translateY: 40}
+        ],
+        justifyContent:'center', alignItems:'center'
+      },
+      cube6: {
+        width:80,
+        height: 80,
+        backgroundColor:'#CBEA50',
+        transform:[
+            {rotateX:'-90deg'},
+            {translateY: -40}
+        ],
+        justifyContent:'center', alignItems:'center'
+      }
+})

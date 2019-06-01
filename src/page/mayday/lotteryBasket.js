@@ -121,7 +121,7 @@ class LotteryBasket extends Component {
           }
     }) 
    
-    fetch('http://192.168.93.227:3000/customer/createLottery', {
+    fetch('http://192.168.84.115:3000/customer/createLottery', {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         mode: 'cors', // no-cors, cors, *same-origin
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached

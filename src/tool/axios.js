@@ -16,7 +16,7 @@ export default class Axios {
     // }
 
     static ajax(options){
-        let baseApi = 'http://192.168.93.227:3000/customer';
+        let baseApi = 'http://192.168.84.115:3000/customer';
         return new Promise((resolve,reject)=>{
             // axios.post(baseApi + options.url, {title:'qqqq'}).then((response)=>{
             //     if (response.status == '200'){

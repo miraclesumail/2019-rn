@@ -96,7 +96,7 @@ export default class Cube extends Component {
              <TouchableWithoutFeedback onPress={() => this.startAnimating()}>
                     <View style={{position:"absolute", bottom:80, left: .5*WIDTH - 50, width:100, height:40, borderRadius:20, backgroundColor:'#5DB8E8',  justifyContent: 'center',
     alignItems: 'center'}}>
-                        <Text>Lets go go </Text>
+                        <Text>Lets go </Text>
                     </View>
              </TouchableWithoutFeedback>  
          </View>

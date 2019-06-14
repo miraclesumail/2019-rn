@@ -41,6 +41,8 @@ import Axios from './src/tool/axios'
 import DragBox from './src/page/mayday/dragbox'
 import KuaiSan from './src/page/mayday/kuaisan'
 
+import Schedule from './src/page/juneday/schedule'
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
   android:
@@ -330,6 +332,7 @@ class App extends Component {
             <Button onPress={this.handlePress3.bind(this)} title={'interact'}/> 
             <Button onPress={this.handlePress5.bind(this)} title={'投注详情'}/> 
             <Button onPress={this.handlePress6.bind(this)} title={'快三'}/> 
+            <Button onPress={() => this.router.navigate('Schedule')} title={'课程表'}/> 
             
             {/* <View style={{width:widths, flexDirection:'row', flexWrap:'wrap', paddingHorizontal:.02*widths, marginTop:20}}></View> */}
             <View style={{width:widths, paddingHorizontal:.02*widths, marginTop:20}}>
@@ -427,11 +430,15 @@ const AppNavigator = createStackNavigator({
       },
       Record: {
         screen: LotteryRecord
+      },
+      Schedule: {
+        screen: Schedule
       }
 },
 {
   /* The header config from HomeScreen is now here */
   initialRouteName: 'Home',
+  transitionConfig,
   defaultNavigationOptions: {
     headerStyle: {
       backgroundColor: '#f4511e',

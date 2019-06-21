@@ -3,6 +3,14 @@ import { Text, View, Dimensions, ScrollView, StyleSheet, Animated, TouchableWith
 
 const {width, height} = Dimensions.get('window');
 
+function getAllIndexes(arr, val) {
+    var indexes = [], i = -1;
+    while ((i = arr.indexOf(val, i+1)) != -1){
+        indexes.push(i);
+    }
+    return indexes;
+}
+
 export class Schedule extends Component {
     constructor(props){
          super(props);
@@ -10,25 +18,49 @@ export class Schedule extends Component {
          this.state = {
               // 8:00 17:00
               scheduleTable: [
-                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
-                  [{subject:'如何', duration:'40', begin:0, teacher:'Sumail Lei'}, {subject:'python', duration:'40', begin:0, teacher:'Sumail Lei'},'','',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
-                  [{subject:'一样', duration:'50', begin:0, teacher:'Sumail Lei'}, '','','',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
-                  [{subject:'java', duration:'40', begin:0, teacher:'Sumail Lei'}, '',{subject:'java', duration:'50', begin:0, teacher:'being Ray'},'',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
-                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
-                  ['', '',{subject:'swift', duration:'40',begin:10, teacher:'Sumail Lei'},'','','','',''],
-                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'',{subject:'flutter', duration:'60',begin:0, teacher:'Sumail Lei'},''],  
+                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'being Ray'},'','',''],
+                  [{subject:'如何', duration:'40', begin:0, teacher:'Sumail Lei'}, {subject:'python', duration:'40', begin:0, teacher:'gannicus'},'','',{subject:'java', duration:'40',begin:10, teacher:'冠希哥'},'','',''],
+                  [{subject:'一样', duration:'50', begin:0, teacher:'being Ray'}, '','','',{subject:'java', duration:'40',begin:10, teacher:'冠希哥'},'','',''],
+                  [{subject:'java', duration:'40', begin:0, teacher:'being Ray'}, '',{subject:'java', duration:'50', begin:0, teacher:'being Ray'},'',{subject:'java', duration:'40',begin:10, teacher:'Sumail Lei'},'','',''],
+                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'冠希哥'},'','',''],
+                  ['', '',{subject:'swift', duration:'40',begin:10, teacher:'tomato'},'','','','',''],
+                  ['', '','','',{subject:'java', duration:'40',begin:10, teacher:'gannicus'},'',{subject:'flutter', duration:'60',begin:0, teacher:'yaphets'},''],  
               ],
               times:['08:00','09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
               showModal: false,
               showInfo: null,
               chooseIndex:[],
               scrollEnabled: true,
-              activeIndex:[]
+              activeIndex:[],
+              teachers:[
+                  {name:'Sumail Lei', occupied:'', max: 8, subjects:['java', 'javascript', 'php', 'golang', 'python']},
+                  {name:'being Ray', occupied:'', max: 6, subjects:['java', 'objectivec', 'php', 'golang', 'python']},
+                  {name:'冠希哥', occupied:'', max: 9, subjects:['java', 'javascript', 'swift', 'kotlin', 'python']},
+                  {name:'tomato', occupied:'', max: 7, subjects:['java', 'javascript', 'php', 'golang', 'python']},
+                  {name:'gannicus', occupied:'', max: 5, subjects:['java', 'c++', 'php', 'golang', 'python']},
+                  {name:'yaphets', occupied:'', max: 8, subjects:['java', 'javascript', 'docker', 'golang', 'mysql']}
+              ],
+              isEdit: false,
+              editInfo: {
+                  teacher: '',
+                  duration: '',
+                  week: '',
+                  begin: '',
+                  subject: ''
+              },
+              subjectsToSelect: [],
+              teachersToSelect: [],
+              beginToSelect: [],
+              weekToSelect: [],
+              duration: [30, 40, 50, 60],
+              flatListData: ''
          }
 
          this._animatedValue = new Animated.ValueXY;
          this.animatedLeft = new Animated.Value(0);
          this.animatedTop = new Animated.Value(0);
+
+         this.menuTranslateY = new Animated.Value(-150); 
 
          this.rotate = new Animated.Value(0);
          this.rotate1 = new Animated.Value(0);
@@ -61,13 +93,74 @@ export class Schedule extends Component {
             extrapolate:'clamp'
          })
     }
+
+    componentDidMount() {
+        // 开始需要统计老师上课信息
+        const { scheduleTable } = this.state;
+        let teachers = this.state.teachers.slice();
+
+        scheduleTable.reduce((prev, next) => [...prev, ...next]).filter(item => item != '').forEach(item => {
+              teachers = teachers.map(ele => 
+                   ele.name == ite.teacher ? 
+                   !ele.occupied ? ({...ele, occupied:1}) : ({...ele, occupied: ele.occupied + 1}) : ele
+              )
+        })
+
+        this.setState({teachers})
+    }
+
+    
    
+    // 打开课程信息 需要设置 editInfo
     showModal = (index, order) => {
-         const {times} = this.state;
+         const { times, scheduleTable, teachers } = this.state;
          const begin = times[order].split(':')[0] + ':' + ('0' + this.state.scheduleTable[index][order].begin).slice(-2)
-         this.setState({showInfo: {...this.state.scheduleTable[index][order], week: '周' + (index+1), begin}}, () => {
-              this.setState({showModal: true, chooseIndex:[index, order]})
+         const teacher = scheduleTable[index][order].teacher;
+         // 可以选择的科目
+         const subjectsToSelect = teachers.filter(item => item.name == teacher)[0].subjects;
+
+         // 可以选择的开始时间 
+         let beginToSelect = [];
+         getAllIndexes(scheduleTable[index], '').forEach(item => beginToSelect.push(times[item]));
+
+         // 可以选择的老师 = 选课未满的老师 + 当前选中老师
+         const teachersToSelect = teachers.filter(item => item.occupied < item.max).map(item => item.name).push(teacher);
+
+         // 可以选择周几上课
+         let weekToSelect = [];
+         scheduleTable.forEach((item, index) => item.includes('') && weekToSelect.push(index));
+         weekToSelect = weekToSelect.map(item => `周${item + 1}`)
+
+         this.setState({showInfo: {...this.state.scheduleTable[index][order], week: '周' + (index+1), begin}, subjectsToSelect, beginToSelect, weekToSelect, teachersToSelect}, () => {
+              this.setState({showModal: true, editInfo: this.state.showInfo,  chooseIndex:[index, order]})
          })
+    }
+
+
+
+    setFlatlistData = (choice) => {
+         if(!this.state.editInfo.teacher) return;
+         switch (choice) {
+            case 'subject':
+               this.setState({flatListData: subjectsToSelect});
+               break;
+            case 'teacher':
+               this.setState({flatListData: teachersToSelect});
+               break; 
+            case 'begin':
+               this.setState({flatListData: beginToSelect});
+               break; 
+            case 'week':
+               this.setState({flatListData: weekToSelect});
+               break; 
+            default:
+               break;         
+         }  
+         
+         Animated.timing(this.menuTranslateY, {
+              toValue: -150,
+              duration: 600
+         }).start();
     }
 
     delete = () => {
@@ -77,6 +170,12 @@ export class Schedule extends Component {
          this.setState({scheduleTable}, () => {
               this.setState({showModal: false})
          })
+    }
+
+    deleteItem = (index, order) => {
+        let scheduleTable = this.state.scheduleTable.slice();
+        scheduleTable[index][order] = '';
+        this.setState({scheduleTable, scrollEnabled:true, activeIndex: []});
     }
 
     openMouse = () => {
@@ -133,13 +232,15 @@ export class Schedule extends Component {
             //   height: 60,
         }
         const [index, order] = this.state.activeIndex, ele = this.state.scheduleTable[index][order];
-        return <HandDrag style={style} openMouse={() => this.openMouse()} orderedIndex={[index, order]} changeTable={(arr1, arr2) => this.changeTable(arr1, arr2)} scrollDis={this._value}>
+        return <HandDrag style={style} openMouse={() => this.openMouse()} deleteItem={() => this.deleteItem(index, order)} orderedIndex={[index, order]} changeTable={(arr1, arr2) => this.changeTable(arr1, arr2)} scrollDis={this._value}>
                 <View style={{position:'absolute', height: +ele.duration, top: +ele.begin, width:.25*width, left:0, backgroundColor:'#5DE8B4', alignItems:'center'}}>
                         <Text>课程:{ele.subject}</Text>
                         <Text>任教:{ele.teacher}</Text>
                 </View> 
         </HandDrag>    
     }
+
+    _keyExtractor = (item, index) => index + 'qq'
  
     render() {
         const {scrollEnabled} = this.state;
@@ -151,6 +252,12 @@ export class Schedule extends Component {
         const transformStyle1 = {
             transform: [
                 {translateY: this.animatedTop}
+            ]
+        }
+
+        const transformMenu = {
+            transform: [
+                {translateY: this.menuTranslateY}
             ]
         }
         return (
@@ -198,20 +305,20 @@ export class Schedule extends Component {
                            </View>                         
                       </ScrollView>    
                 </View>
-                <Animated.View style={{width:0, height:0,position:'absolute', top:240 + .2*height, left:.15*width, borderTopColor:'transparent', borderTopWidth:15, borderLeftWidth:30, borderLeftColor:'red', transform:[{rotate: this._angle}]}}>
+                {/* <Animated.View style={{width:0, height:0,position:'absolute', top:240 + .2*height, left:.15*width, borderTopColor:'transparent', borderTopWidth:15, borderLeftWidth:30, borderLeftColor:'red', transform:[{rotate: this._angle}]}}>
                 </Animated.View>
                 <Animated.View style={{width:0, height:0,position:'absolute', top:255 + .2*height, left:.15*width, borderTopColor:'green', borderTopWidth:15, borderRightWidth:30, borderRightColor:'transparent', transform:[{rotate: this._angle1}]}}>
-                </Animated.View>
+                </Animated.View> */}
            
                 {
-                      this.state.showModal ?
+                      this.state.showModal && !this.state.isEdit?
                       <Fragment>
                       <TouchableWithoutFeedback onPress={() => this.setState({showModal: false})}>
                            <View style={styles.modal}>
                               
                             </View>
                       </TouchableWithoutFeedback> 
-                                <View style={{position:'absolute', left:.1*width, top:.2*height, width:.8*width, height: .5*height, paddingTop:.02*height, backgroundColor:'chocolate', borderRadius:10, alignItems:'center'}}>
+                                <View style={{position:'absolute', left:.1*width, top:.15*height, width:.8*width, height: .5*height, paddingTop:.02*height, backgroundColor:'chocolate', borderRadius:10, alignItems:'center'}}>
                                     <View style={{width:.6*width, height:.22*height, backgroundColor:'pink', justifyContent:'center', alignItems:'center', marginBottom:.02*height}}>
                                             <Text>{this.state.showInfo.subject}</Text>
                                     </View>
@@ -230,13 +337,62 @@ export class Schedule extends Component {
                                     </View>
 
                                     <View style={{width:.5*width, height:.08*height, marginTop: .01*height, flexDirection:'row', justifyContent:'space-between'}}>
-                                          <View style={styles.btn}><Text>编辑</Text></View>
+                                          <TouchableWithoutFeedback onPress={() => this.setState({isEdit: true})}><View style={styles.btn}><Text>编辑</Text></View></TouchableWithoutFeedback>
                                           <TouchableWithoutFeedback onPress={() => this.delete()}><View style={styles.btn}><Text>删除</Text></View></TouchableWithoutFeedback> 
                                     </View>
                                 </View>
                         </Fragment>
                        : null
-                }         
+                }  
+
+                {
+                      this.state.showModal && this.state.isEdit?
+                      <Fragment>
+                                <TouchableWithoutFeedback onPress={() => this.setState({showModal: false})}>
+                                    <View style={styles.modal}>
+                                        
+                                    </View>
+                                </TouchableWithoutFeedback> 
+                                <View style={{position:'absolute', left:.1*width, top:.15*height, width:.8*width, height: .5*height, paddingTop:.02*height, backgroundColor:'chocolate', borderRadius:10, alignItems:'center'}}>
+                                    <TouchableWithoutFeedback onPress={() => {}}>
+                                        <View style={{width:.6*width, height:.22*height, backgroundColor:'pink', justifyContent:'center', alignItems:'center', marginBottom:.02*height}}>
+                                                <Text>{this.state.editInfo.subject}</Text>
+                                        </View>
+                                    </TouchableWithoutFeedback>
+                                   
+                                    <TouchableWithoutFeedback onPress={() => this.setFlatlistData('teacher')}>
+                                        <View style={styles.info}>
+                                            <Text>授课老师:{this.state.editInfo.teacher}</Text>
+                                        </View>
+                                    </TouchableWithoutFeedback>
+                                   
+                                    <View style={styles.info}>
+                                        <Text>授课时长:{this.state.editInfo.duration}分钟</Text>
+                                    </View>
+                                    <View style={styles.info}>
+                                        <Text>授课星期:{this.state.editInfo.week}</Text>
+                                    </View>
+                                    <View style={styles.info}>
+                                        <Text>授课时间:{this.state.editInfo.begin}</Text>
+                                    </View>
+
+                                    <View style={{width:.5*width, height:.08*height, marginTop: .01*height, flexDirection:'row', justifyContent:'center'}}>
+                                          <TouchableWithoutFeedback onPress={() => this.delete()}><View style={styles.btn}><Text>保存</Text></View></TouchableWithoutFeedback> 
+                                    </View>
+                                </View>
+
+                                <Animated.View style={{width, height: 150, bottom:0, backgroundColor:'chocolate', ...transformMenu}}>
+                                       <FlatList 
+                                           data={this.state.flatListData}
+                                           extraData={this.state}
+                                           renderItem={({item}) => 
+                                                   <View><Text>{item}</Text></View>}
+                                           keyExtractor={this._keyExtractor} 
+                                       />
+                                </Animated.View>
+                        </Fragment>
+                       : null
+                }  
             </View>
         )
     }
@@ -260,8 +416,8 @@ class HandDrag extends Component {
         })
         
         this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponder: (evt, gestureState) => true,
+            onStartShouldSetPanResponder: (evt, gestureState) => !(gestureState.dx === 0 && gestureState.dy === 0),
+            onMoveShouldSetPanResponder: (evt, gestureState) => !(gestureState.dx === 0 && gestureState.dy === 0),
             onPanResponderGrant: (evt, gestureState) => {
                  this.animatedValue.setOffset({
                      x: this._value.x,
@@ -276,7 +432,7 @@ class HandDrag extends Component {
                 null, { dx: this.animatedValue.x, dy: this.animatedValue.y}
             ]),
             onPanResponderRelease: (evt, gestureState) => {
-                console.log('release');
+                console.log('release 啊啊啊啊啊啊啊啊');
                 console.log(gestureState.vx);
                 this.animatedValue.flattenOffset();
                 this.animatedValue.setOffset({x:0, y:0})
@@ -324,7 +480,7 @@ class HandDrag extends Component {
 
     
       render() {
-          const {style} = this.props;   
+          const {style, deleteItem} = this.props;   
           const transformStyle = {
                 transform:[
                     ...this.animatedValue.getTranslateTransform(),
@@ -333,7 +489,7 @@ class HandDrag extends Component {
           }
           return <Animated.View style={[styles.course, style, transformStyle]} {...this._panResponder.panHandlers}>
                  {this.props.children}
-                 <TouchableWithoutFeedback onPress={() => this.goTrash()}>
+                 <TouchableWithoutFeedback onPress={() => deleteItem()}>
                      <View style={{position:'absolute', width:15,height:15, top:0, right:0, backgroundColor:'pink', justifyContent:'center', alignItems:'center'}}><Text>×</Text></View>
                  </TouchableWithoutFeedback>
              </Animated.View> 

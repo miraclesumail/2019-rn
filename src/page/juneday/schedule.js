@@ -52,6 +52,7 @@ export class Schedule extends Component {
               teachersToSelect: [],
               beginToSelect: [],
               weekToSelect: [],
+              chooseNode: '',
               duration: [30, 40, 50, 60],
               flatListData: ''
          }
@@ -109,37 +110,42 @@ export class Schedule extends Component {
         this.setState({teachers})
     }
 
-    
+    componentWillUpdate(nextProps, nextState){
+         // 每次editInfo的teacher 改变后
+         if( this.state.editInfo.teacher != nextState.editInfo.teacher) {
+                const { times, scheduleTable, teachers } = this.state;
+                const teacher = nextState.editInfo.teacher;
+                // 可以选择的科目
+                const subjectsToSelect = teachers.filter(item => item.name == teacher)[0].subjects;
+
+                // 可以选择的开始时间 
+                let beginToSelect = [];
+                getAllIndexes(scheduleTable[index], '').forEach(item => beginToSelect.push(times[item]));
+
+                // 可以选择的老师 = 选课未满的老师 + 当前选中老师
+                const teachersToSelect = teachers.filter(item => item.occupied < item.max).map(item => item.name).push(teacher);
+
+                // 可以选择周几上课
+                let weekToSelect = [];
+                scheduleTable.forEach((item, index) => item.includes('') && weekToSelect.push(index));
+                weekToSelect = weekToSelect.map(item => `周${item + 1}`)
+                this.setState({subjectsToSelect, beginToSelect, teachersToSelect, weekToSelect})        
+         }
+    }
    
     // 打开课程信息 需要设置 editInfo
     showModal = (index, order) => {
          const { times, scheduleTable, teachers } = this.state;
          const begin = times[order].split(':')[0] + ':' + ('0' + this.state.scheduleTable[index][order].begin).slice(-2)
-         const teacher = scheduleTable[index][order].teacher;
-         // 可以选择的科目
-         const subjectsToSelect = teachers.filter(item => item.name == teacher)[0].subjects;
-
-         // 可以选择的开始时间 
-         let beginToSelect = [];
-         getAllIndexes(scheduleTable[index], '').forEach(item => beginToSelect.push(times[item]));
-
-         // 可以选择的老师 = 选课未满的老师 + 当前选中老师
-         const teachersToSelect = teachers.filter(item => item.occupied < item.max).map(item => item.name).push(teacher);
-
-         // 可以选择周几上课
-         let weekToSelect = [];
-         scheduleTable.forEach((item, index) => item.includes('') && weekToSelect.push(index));
-         weekToSelect = weekToSelect.map(item => `周${item + 1}`)
-
-         this.setState({showInfo: {...this.state.scheduleTable[index][order], week: '周' + (index+1), begin}, subjectsToSelect, beginToSelect, weekToSelect, teachersToSelect}, () => {
+    
+         this.setState({showInfo: {...this.state.scheduleTable[index][order], week: '周' + (index+1), begin}}, () => {
               this.setState({showModal: true, editInfo: this.state.showInfo,  chooseIndex:[index, order]})
          })
     }
 
-
-
     setFlatlistData = (choice) => {
          if(!this.state.editInfo.teacher) return;
+         this.setState({chooseNode: choice});
          switch (choice) {
             case 'subject':
                this.setState({flatListData: subjectsToSelect});
@@ -150,6 +156,8 @@ export class Schedule extends Component {
             case 'begin':
                this.setState({flatListData: beginToSelect});
                break; 
+            case 'duration':
+               this.setState({flatListData: this.state.duration})   
             case 'week':
                this.setState({flatListData: weekToSelect});
                break; 
@@ -161,6 +169,37 @@ export class Schedule extends Component {
               toValue: -150,
               duration: 600
          }).start();
+    }
+
+    submitChooseText = (text) => {
+         const { chooseNode, editInfo } = this.state;
+         switch (chooseNode) {
+             case 'subject': 
+               this.setState({editInfo: {...editInfo, subject: text}});
+               break;
+             case 'teacher':
+               this.setState({editInfo: {...editInfo, teacher: text}});
+               break;   
+             case 'begin':
+               this.setState({editInfo: {...editInfo, begin: text}});
+               break;  
+             case 'duration':
+               this.setState({editInfo: {...editInfo, duration: text}});
+               break; 
+             case 'week':
+               this.setState({editInfo: {...editInfo, week: text}});
+               break;      
+         }     
+    }
+
+    changeOrAddCourse = () => {
+         const { chooseIndex, scheduleTable, times, editInfo: {week, begin, duration} } = this.state;
+         if( chooseIndex.length ) {
+             let scheduleTable = scheduleTable.slice();
+             scheduleTable[chooseIndex[0]][chooseIndex[1]] = '';
+             const [hIndex, vIndex] = [+week.replace('星期', '') - 1, times.indexOf(begin)];
+            // scheduleTable[]
+         }
     }
 
     delete = () => {
@@ -366,12 +405,18 @@ export class Schedule extends Component {
                                         </View>
                                     </TouchableWithoutFeedback>
                                    
-                                    <View style={styles.info}>
-                                        <Text>授课时长:{this.state.editInfo.duration}分钟</Text>
-                                    </View>
-                                    <View style={styles.info}>
-                                        <Text>授课星期:{this.state.editInfo.week}</Text>
-                                    </View>
+                                    <TouchableWithoutFeedback onPress={() => this.setFlatlistData('duration')}>
+                                        <View style={styles.info}>
+                                            <Text>授课时长:{this.state.editInfo.duration}分钟</Text>
+                                        </View>
+                                    </TouchableWithoutFeedback>
+                                    
+                                    <TouchableWithoutFeedback onPress={() => this.setFlatlistData('week')}>
+                                        <View style={styles.info}>
+                                            <Text>授课星期:{this.state.editInfo.week}</Text>
+                                        </View>
+                                    </TouchableWithoutFeedback>
+                                   
                                     <View style={styles.info}>
                                         <Text>授课时间:{this.state.editInfo.begin}</Text>
                                     </View>
@@ -386,7 +431,10 @@ export class Schedule extends Component {
                                            data={this.state.flatListData}
                                            extraData={this.state}
                                            renderItem={({item}) => 
-                                                   <View><Text>{item}</Text></View>}
+                                                   <TouchableWithoutFeedback onPress={() => this.submitChooseText(item)}>
+                                                         <View><Text>{item}</Text></View>
+                                                   </TouchableWithoutFeedback>
+                                                }
                                            keyExtractor={this._keyExtractor} 
                                        />
                                 </Animated.View>
@@ -456,9 +504,7 @@ class HandDrag extends Component {
         })
     }
 
-    goTrash = () => {
-        console.log('gotransh');
-       
+    goTrash = () => {       
         const {scrollDis, orderedIndex, openMouse} = this.props;
         const translateX = orderedIndex[0]*.25*width - scrollDis.x;
         const translateY = (255 + .2*height) - (orderedIndex[1]*60 - scrollDis.y + 40 + .03*height + 30);

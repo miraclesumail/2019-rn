@@ -18,7 +18,7 @@
     "react-native-circular-progress": "^1.1.0",
     "react-native-datepicker": "^1.7.2",
     "react-native-device-info": "0.11.0",
-    "react-native-fs": "2.13.2",
+    "react-native-fs": "^2.13.3",
     "react-native-gesture-handler": "^1.1.0",
     "react-native-image-picker": "^0.28.1",
     "react-native-interactable": "^0.1.10",
